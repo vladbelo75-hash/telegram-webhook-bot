@@ -1,11 +1,9 @@
 import os
-from dotenv import load_dotenv
 from flask import Flask, request
 import telebot
 import openai
 
-# --- Загрузка переменных окружения ---
-load_dotenv()
+# --- Переменные окружения напрямую (без dotenv) ---
 TOKEN = os.getenv("TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
@@ -13,14 +11,14 @@ PORT = int(os.getenv("PORT", 5000))
 
 # --- Проверка переменных ---
 if not TOKEN or not OPENAI_API_KEY or not WEBHOOK_URL:
-    raise ValueError("TOKEN, OPENAI_API_KEY или WEBHOOK_URL не заданы!")
+    raise ValueError("TOKEN, OPENAI_API_KEY или WEBHOOK_URL не заданы! Проверь Environment Variables в облаке.")
 
 TOKEN = TOKEN.strip()
 OPENAI_API_KEY = OPENAI_API_KEY.strip()
 WEBHOOK_URL = WEBHOOK_URL.strip()
 
+# --- Настройка OpenAI и бота ---
 openai.api_key = OPENAI_API_KEY
-
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
@@ -61,12 +59,12 @@ def webhook():
     bot.process_new_updates([update])
     return "!", 200
 
-# --- Установка webhook прямо перед запуском ---
+# --- Установка webhook перед запуском ---
 def setup_webhook():
     bot.remove_webhook()
     bot.set_webhook(url=f"{WEBHOOK_URL}/{TOKEN}")
     print(f"Webhook установлен: {WEBHOOK_URL}/{TOKEN}")
 
 if __name__ == "__main__":
-    setup_webhook()  # вызываем вручную
+    setup_webhook()  # вызываем один раз перед запуском
     app.run(host="0.0.0.0", port=PORT)
